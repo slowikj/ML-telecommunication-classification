@@ -1,0 +1,71 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{afterpage}
+\usepackage{longtable}
+\usepackage{makecell}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage[margin=1.3in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{adjustbox}
+\title{Zaawansowane metody uczenia maszynowego -- \\
+projekt nr 1}
+\author{Jadwiga Słowik}
+\date{3 maja 2019}
+
+\begin{document}
+\maketitle
+\section{Cel projektu}
+Celem projektu jest oczyszczenie danych pochodzących z~branży telekomunikacyjnej, a~następnie na~ich podstawie zbudowanie i~przetestowanie czterech wybranych klasyfikatorów binarnych.
+
+\section{Opis zbioru danych}
+Dostarczony zbiór danych składa~się z~dwóch części: zbiór treningowy (wraz z~etykietami) oraz~zbiór testowy (bez~etykiet). Nazwy zmiennych (cech/kolumn) mają jedynie numery porządkowe, nie~niosą żadnej dodatkowej informacji o~opisywanej cesze.
+
+Pojedyncza obserwacja opisuje cechy konkretnego klienta (branży telekomunikacyjnej), natomiast~klasa (etykieta) określa, czy~klient przyjął proponowaną ofertę (wartość~$1$), czy~nie (wartość~$0$).
+
+Rozkład klas jest \textit{niezbalansowany}. Liczność obserwacji o~etykiecie~$1$ stanowi mniej~niż~$10\%$ obserwacji.
+
+\section{Opis rozwiązania}
+Rozwiązanie niniejszego problemu zostało zaimplementowane przy~pomocy języka \textit{Python} i~bibliotek: \textit{numpy}, \textit{pandas}, \textit{sklearn}, \textit{categorical\_encoders}.
+
+Analiza danych i~implementacja rozwiązania znajduje~się w~\texttt{jupyter-notebooku} o~nazwie \texttt{ml-project1-notebook.ipynb}.
+
+Rozwiązanie składa~się z~dwóch głównych etapów, które~kolejno zostaną opisane w~kolejnych podrozdziałach.
+
+\subsection{Proces oczyszczania danych}
+Dostarczone dane zostały poddane następującym transformacjom:
+\begin{enumerate}
+    \item Usuwanie wybranych kolumn \\
+    Zostały usunięte kolumny, które~zawierały więcej niż~$30\%$ braków danych. Ponadto, dla~każdej pary kolumn został obliczony współczynnik korelacji (\textit{Pearsona}). Następnie, na~podstawie otrzymanych wyników, dla~każdej kolumny została utworzona lista (innych) kolumn, które~są skorelowane z~daną kolumną w~stopniu większym niż~$0.8$. Na~podstawie tak utworzonych list, zostały usunięte zbędne kolumny.
+    
+    Następnie, dla~każdej zmiennej (cechy) zostały wygenerowane histogramy. Dzięki temu, można było zauważyć, jak~wygląda rozkład wartości dla~każdej zmiennej. Zauważyłam, że~w~znacznej grupie wygenerowanych histogramów $0$ przewyższa w~liczności inne wartości. Bardzo~możliwe, że~jest to inny sposób oznaczenia braku danych, jednakże~wcale nie~musi to~być prawda. Na~przykład, jedna z~kolumn mogłaby oznaczać aktualny bilans rachunku danego klienta (wartości ujemne -- zadłużenie, wartości dodatnie -- nadpłata).
+    
+    \item Zastąpienie braków danych \\
+    Braki danych dla~danych ilościowych (w~tym przypadku typu \texttt{float64}) zostały zastąpione wartością średnią w~danej kolumnie, natomiast~braki danych dla~danych jakościowych (tym przypadku typu \texttt{object} i~\texttt{int}) zostały zamienione przez~wartość najczęściej występującą w~obrębie danej kolumny (moda).
+    
+    \item Kodowanie danych kategorycznych \\
+    Niektóre algorytmy klasyfikacji mają problemy z~obsługą zmiennych nieliczbowych. W~tym celu, zmienne typu łańcuchowego zostały zakodowane przy~pomocy algorytmu \textit{factor / mean encoding}.
+\end{enumerate}
+
+\subsection{Proces klasyfikacji}
+Na przetworzone danych zostały zbudowane cztery następujące klasyfikatory:
+\begin{itemize}
+    \item \textit{Random forest} 
+    \item \textit{XGBoost}
+    \item \textit{Naive Bayes}
+    \item \textit{QDA}
+    \item Próba \textit{SVM} \\
+    Proces \textit{kroswalidacji} został przerwany po~ponad dwóch godzinach.
+\end{itemize}
+Ostateczny wybór ,,najlepszego'' klasyfikatora został podjęty na~podstawie wyników \textit{kroswalidacji}. Dane~treningowe zostały podzielone na~$10$ części i~dla~kolejno każdej części został wykonywany proces predykcji. Dla~każdego etapu (\textit{kroswalidacji}) były obliczane następujące metryki:
+\textit{f1}, \textit{precision}, \textit{recall}.
+Warto~zaznaczyć, że~została pominięta metryka \textit{accuracy}, z~powodu faktu, że~dany zbiór treningowy jest bardzo niezbalansowany.
+
+Ostatecznie, został wybrany klasyfikator \textit{XGBoost}, ponieważ~daje największą czułość wraz z~precyzją na~wysokim poziomie. Dobre~wyniki (ale~nieco gorsze) zostały osiągnięte przez~klasyfikator \textit{Random forest}. Pozostałe dwa klasyfikatory (\textit{QDA}, \textit{Naive Bayes}) dawały znacznie gorsze wyniki.
+Dokładne tabelki z~wynikami zostały zawarte w~pliku \texttt{ml\_project1\_notebook.ipynb}.
+\end{document}
